@@ -7,12 +7,18 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Request, Response, NextFunction } from 'express';
 import { IncomingMessage, ServerResponse } from 'http';
 import * as basicAuth from 'express-basic-auth';
+import helmet from 'helmet';
+import * as csurf from 'csurf';
 
 declare const module: any;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
+  app.use(csurf()); // CSRF protection
+  app.use(helmet()); // helps with XSS attacks
+  app.getHttpAdapter().getInstance().disable('x-powered-by'); // Hide framework used =
+
   app.use(express.json({
     verify: (req: IncomingMessage, res: ServerResponse, buf: Buffer, encoding: string) => {
       if (req.url && req.url.startsWith('/stripe/webhook')) {
