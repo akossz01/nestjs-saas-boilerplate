@@ -10,6 +10,7 @@ export class MailerService {
   private projectName: string;
   private useCustomMailServer: boolean;
   private mailgunClient: mailgun.Mailgun;
+  private domainUrl: string;
 
   constructor(private configService: ConfigService) {
     this.useCustomMailServer = this.configService.get<boolean>('USE_CUSTOM_MAIL_SERVER');
@@ -33,6 +34,7 @@ export class MailerService {
 
     this.senderEmail = this.configService.get<string>('SENDER_EMAIL');
     this.projectName = this.configService.get<string>('PROJECT_NAME');
+    this.domainUrl = this.configService.get<string>('DOMAIN_URL');
   }
 
   async sendMail(to: string, from: string, subject: string, text: string, html: string) {
@@ -80,6 +82,7 @@ export class MailerService {
         <style>
           .container { font-family: Arial, sans-serif; margin: 0 auto; padding: 20px; max-width: 600px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; }
           .header { text-align: center; padding-bottom: 20px; }
+          .header-img { border-radius: 50%; object-fit: cover; height: 80px; width: 80px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); }
           .content { font-size: 16px; line-height: 1.5; color: #333; }
           .button { display: block; width: 200px; margin: 20px auto; padding: 10px 20px; background-color: #007bff; color: white !important; text-align: center; text-decoration: none; border-radius: 5px; font-size: 18px; }
           .button a { text-decoration: none; color: white !important }
@@ -89,6 +92,7 @@ export class MailerService {
       <body>
         <div class="container">
           <div class="header">
+            <img src="${this.domainUrl}/images/logo.png" class="header-img"/>
             <h1>Welcome to ${this.projectName}</h1>
           </div>
           <div class="content">
@@ -119,6 +123,7 @@ export class MailerService {
         <style>
           .container { font-family: Arial, sans-serif; margin: 0 auto; padding: 20px; max-width: 600px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; }
           .header { text-align: center; padding-bottom: 20px; }
+          .header-img { border-radius: 50%; object-fit: cover; height: 80px; width: 80px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); }
           .content { font-size: 16px; line-height: 1.5; color: #333; }
           .button { display: block; width: 200px; margin: 20px auto; padding: 10px 20px; background-color: #007bff; color: white !important; text-align: center; text-decoration: none; border-radius: 5px; font-size: 18px; }
           .button a { text-decoration: none; color: white !important }
@@ -128,6 +133,7 @@ export class MailerService {
       <body>
         <div class="container">
           <div class="header">
+            <img src="${this.domainUrl}/images/logo.png" class="header-img"/>
             <h1>Reset Your Password</h1>
           </div>
           <div class="content">
@@ -158,6 +164,7 @@ export class MailerService {
         <style>
           .container { font-family: Arial, sans-serif; margin: 0 auto; padding: 20px; max-width: 600px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; }
           .header { text-align: center; padding-bottom: 20px; }
+          .header-img { border-radius: 50%; object-fit: cover; height: 80px; width: 80px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); }
           .content { font-size: 16px; line-height: 1.5; color: #333; }
           .button { display: block; width: 200px; margin: 20px auto; padding: 10px 20px; background-color: #007bff; color: white !important; text-align: center; text-decoration: none; border-radius: 5px; font-size: 18px; }
           .button a { text-decoration: none; color: white !important }
@@ -167,6 +174,7 @@ export class MailerService {
       <body>
         <div class="container">
           <div class="header">
+            <img src="${this.domainUrl}/images/logo.png" class="header-img"/>
             <h1>Confirm Your Email</h1>
           </div>
           <div class="content">
@@ -197,6 +205,7 @@ export class MailerService {
         <style>
           .container { font-family: Arial, sans-serif; margin: 0 auto; padding: 20px; max-width: 600px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; }
           .header { text-align: center; padding-bottom: 20px; }
+          .header-img { border-radius: 50%; object-fit: cover; height: 80px; width: 80px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); }
           .content { font-size: 16px; line-height: 1.5; color: #333; }
           .button { display: block; width: 200px; margin: 20px auto; padding: 10px 20px; background-color: #007bff; color: white !important; text-align: center; text-decoration: none; border-radius: 5px; font-size: 18px; }
           .button a { text-decoration: none; color: white !important }
@@ -206,6 +215,7 @@ export class MailerService {
       <body>
         <div class="container">
           <div class="header">
+            <img src="${this.domainUrl}/images/logo.png" class="header-img"/>
             <h1>Payment Successful</h1>
           </div>
           <div class="content">
@@ -236,6 +246,7 @@ export class MailerService {
         <style>
           .container { font-family: Arial, sans-serif; margin: 0 auto; padding: 20px; max-width: 600px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; }
           .header { text-align: center; padding-bottom: 20px; }
+          .header-img { border-radius: 50%; object-fit: cover; height: 80px; width: 80px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); }
           .content { font-size: 16px; line-height: 1.5; color: #333; }
           .button { display: block; width: 200px; margin: 20px auto; padding: 10px 20px; background-color: #007bff; color: white !important; text-align: center; text-decoration: none; border-radius: 5px; font-size: 18px; }
           .button a { text-decoration: none; color: white !important }
@@ -245,6 +256,7 @@ export class MailerService {
       <body>
         <div class="container">
           <div class="header">
+            <img src="${this.domainUrl}/images/logo.png" class="header-img"/>
             <h1>Payment Failed</h1>
           </div>
           <div class="content">
