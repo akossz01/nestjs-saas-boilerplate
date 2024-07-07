@@ -5,17 +5,28 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from '../users/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { MailerService } from 'src/mailer/mailer.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class StripeService {
     private readonly logger = new Logger(StripeService.name);
+    public basicPlan: string;
+    public proPlan: string;
+    public enterprisePlan: string;
+    public freePlan: boolean;
 
     constructor(
         @Inject('STRIPE_CLIENT') private readonly stripeClient: Stripe,
         private readonly jwtService: JwtService,
         @InjectModel(User.name) private userModel: Model<UserDocument>,
         private readonly mailerService: MailerService,
-    ) { }
+        private readonly configService: ConfigService,
+    ) {
+        this.basicPlan = this.configService.get<string>('BASIC_PLAN');
+        this.proPlan = this.configService.get<string>('PRO_PLAN');
+        this.enterprisePlan = this.configService.get<string>('ENTERPRISE_PLAN');
+        this.freePlan = this.configService.get<boolean>('FREE_PLAN');
+    }
 
     async listProducts() {
         return this.stripeClient.products.list();
@@ -141,7 +152,15 @@ export class StripeService {
 
         // Extract necessary details
         const customerId = session.customer as string;
-        const product = subscription.items.data[0].price.product;
+        const priceId = subscription.items.data[0].price.id;
+
+        let product;
+        if (typeof subscription.items.data[0].price.product === 'string') {
+          product = subscription.items.data[0].price.product;
+        } else {
+          product = (subscription.items.data[0].price.product as Stripe.Product).id;
+        }
+
         const subscriptionExpires = new Date(subscription.current_period_end * 1000);
 
         this.logger.log(`Customer ID: ${customerId}, Product: ${product}, Expires: ${subscriptionExpires}`);
@@ -161,6 +180,7 @@ export class StripeService {
 
         if (updatedUser) {
             this.logger.log(`User subscription upgraded: ${customerId}, Product: ${product}, Expires: ${subscriptionExpires}`);
+            await this.applyPrivileges(priceId, updatedUser);
         } else {
             this.logger.log(`User not found for customerId: ${customerId}`);
         }
@@ -180,6 +200,12 @@ export class StripeService {
 
         if (updatedUser) {
             this.logger.log(`User subscription downgraded: ${customerId}`);
+
+            if (this.freePlan) {
+                await this.enableFreePrivileges(updatedUser);
+            } else {
+                await this.removePrivileges(updatedUser);
+            }
         } else {
             this.logger.log(`User not found for customerId: ${customerId}`);
         }
@@ -200,6 +226,12 @@ export class StripeService {
 
         if (updatedUser) {
             this.logger.log(`User customer deleted: ${customerId}`);
+
+            if (this.freePlan) {
+                await this.enableFreePrivileges(updatedUser);
+            } else {
+                await this.removePrivileges(updatedUser);
+            }
         } else {
             this.logger.log(`User not found for customerId: ${customerId}`);
         }
@@ -220,4 +252,63 @@ export class StripeService {
         }
     }
 
+    async applyPrivileges(product: string, user: UserDocument) {
+        switch (product) {
+            case this.basicPlan:
+                await this.enableBasicPrivileges(user);
+                break;
+            case this.proPlan:
+                await this.enableProPrivileges(user);
+                break;
+            case this.enterprisePlan:
+                await this.enableEnterprisePrivileges(user);
+                break;
+            default:
+                this.logger.log(`No matching product for privileges: ${product}`);
+        }
+    }
+
+    async enableBasicPrivileges(user: UserDocument) {
+        this.logger.log(`Basic privileges enabled for user: ${user.email}`);
+
+        // Example (Lets say the the basic plan has a project limit of 3)
+        // user.projectLimit = 3;
+        // user.monthlyCredits = 100;
+
+        await user.save();
+    }
+
+    async enableProPrivileges(user: UserDocument) {
+        this.logger.log(`Pro privileges enabled for user: ${user.email}`);
+        
+        await user.save();
+    }
+
+    async enableEnterprisePrivileges(user: UserDocument) {
+        this.logger.log(`Enterprise privileges enabled for user: ${user.email}`);
+        
+        await user.save();
+    }
+
+    async removePrivileges(user: UserDocument) {
+        this.logger.log(`All privileges removed for user: ${user.email}`);
+        
+        // Example
+        // user.projectLimit = 0;
+        // user.monthlyCredits = 0;
+
+        await user.save();
+    }
+
+    async enableFreePrivileges(user: UserDocument) {
+        if (this.freePlan) {
+            this.logger.log(`Free privileges enabled for user: ${user.email}`);
+            
+            // Example
+            // user.projectLimit = 1;
+            // user.monthlyCredits = 10;
+
+            await user.save();
+        }
+    }
 }
