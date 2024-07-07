@@ -41,7 +41,7 @@ This repository is a great starting point for a SaaS app and it can save you a f
 1. Clone the repository:
 
 ```sh
-git clone https://github.com/yourusername/project123.git
+git clone https://github.com/akossz01/nestjs-saas-boilerplate.git
 ```
 
 
@@ -68,11 +68,6 @@ git clone https://github.com/yourusername/project123.git
 
 ### User Authentication
 
-`JWT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-GOOGLE_CLIENT_ID=xxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=xxxxx-xxxxxxxxxxxxxxxxxxxxxxxx-x
-GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback` 
-
 -   `JWT_SECRET`: Secret key for JWT.
 -   `GOOGLE_CLIENT_ID`: Google OAuth client ID.
 -   `GOOGLE_CLIENT_SECRET`: Google OAuth client secret.
@@ -81,14 +76,6 @@ GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback`
 ### Email Configuration
 
 #### Custom Mail Server
-
-`USE_CUSTOM_MAIL_SERVER=true
-MAIL_HOST=
-MAIL_PORT=465
-MAIL_SECURE=true
-MAIL_USER=
-MAIL_PASS=
-SENDER_EMAIL="Project123 <noreply@example.com>"` 
 
 -   `USE_CUSTOM_MAIL_SERVER`: Set to `true` to use a custom mail server.
 -   `MAIL_HOST`: The mail server host.
@@ -100,25 +87,12 @@ SENDER_EMAIL="Project123 <noreply@example.com>"`
 
 #### Mailgun
 
-`MAILGUN_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxx-xxxxxxxx
-MAILGUN_DOMAIN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.mailgun.org
-SENDER_EMAIL="Project123 <noreply@example.com>"` 
-
 -   `MAILGUN_API_KEY`: Mailgun API key.
 -   `MAILGUN_DOMAIN`: Mailgun domain.
 -   `SENDER_EMAIL`: The email address from which emails are sent.
 
 ### Stripe
 
-`FREE_PLAN=true
-STRIPE_SECRET_KEY=sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-BASIC_PLAN=price_xxx
-PRO_PLAN=price_yyy
-ENTERPRISE_PLAN=price_zzz
-STRIPE_SUCCESS_URL=https://your-app.com/success
-STRIPE_CANCEL_URL=https://your-app.com/cancel
-STRIPE_RETURN_URL=https://your-app.com/dashboard` 
 
 -   `FREE_PLAN`: Set to `true` to enable a free plan for users.
 -   `STRIPE_SECRET_KEY`: Stripe secret key.
