@@ -5,38 +5,10 @@
 ## Table of Contents
 
 - [Overview](#overview)
-
 - [Setup](#setup)
-
-- [Prerequisites](#prerequisites)
-
-- [Installation](#installation)
-
 - [Configuration](#configuration)
-
-- [General](#general)
-
-- [Database](#database)
-
-- [User Authentication](#user-authentication)
-
-- [Email Configuration](#email-configuration)
-
-- [Custom Mail Server](#custom-mail-server)
-
-- [Mailgun](#mailgun)
-
-- [Stripe](#stripe)
-
-- [Swagger](#swagger)
-
 - [Usage](#usage)
-
-- [Running the Application](#running-the-application)
-
-- [Accessing Swagger Docs](#accessing-swagger-docs)
-
-- [Stripe Integration](#stripe-integration)
+- [Stripe Integration](#setup-stripe-plans)
 
   
 
@@ -44,7 +16,9 @@
 
 This is a SaaS boilerplate built with NestJS, providing authentication, email services, Stripe integration, and Swagger documentation. It supports both OAuth and traditional email/password authentication, with user subscription management via Stripe.
 
-  
+There are pre-configured email templates set up for various events, such as when a user subscribes, when an invoice fails, when an invoice succeeds, and when a user unsubscribes.
+
+This repository is a great starting point for a SaaS app and it can save you a few days of work.
 
 ## Setup
 
@@ -52,7 +26,7 @@ This is a SaaS boilerplate built with NestJS, providing authentication, email se
 
 ### Prerequisites
 
-- Node.js (v14 or later)
+- Node.js
 
 - MongoDB
 
@@ -165,6 +139,35 @@ SWAGGER_PASSWORD=admin`
 -   `SWAGGER_PASSWORD`: Password to access the Swagger docs.
 
 ## Usage
+### Setup Stripe plans
+To set up 1-3 plans and optionally enable a free plan, follow these steps:
+
+1.  **Free Plan**:
+    
+    -   If you want to provide a free plan, set `FREE_PLAN` to `true` in your `.env` file.
+    -   The `enableFreePrivileges` method will be triggered for new users and users who downgrade to the free plan.
+2.  **Paid Plans**:
+    
+    -   Define up to three Stripe price IDs for your plans: `BASIC_PLAN`, `PRO_PLAN`, and `ENTERPRISE_PLAN` in your `.env` file.
+    -   These plans will be associated with Stripe price IDs and can have different privileges.
+   
+### Example Implementation of Privileges
+
+-   **enableBasicPrivileges**: Enables basic plan privileges for the user.
+-   **enableProPrivileges**: Enables pro plan privileges for the user.
+-   **enableEnterprisePrivileges**: Enables enterprise plan privileges for the user.
+-   **removePrivileges**: Removes all paid privileges, useful for downgrading or deleting a user.
+-   **enableFreePrivileges**: Enables free plan privileges if the free plan is active.
+    
+### Handling the Stripe Webhooks
+
+-   **checkout.session.completed**: Upgrades the user's account and sends a thank you email.
+-   **invoice.payment_succeeded**: Sends an email with the invoice link.
+-   **invoice.payment_failed**: Downgrades the user's account and sends a payment failed email.
+-   **customer.subscription.deleted**: Downgrades the user's account.
+-   **customer.deleted**: Deletes the user's Stripe customer data and potentially removes privileges.
+
+These methods will be triggered based on the event types received from Stripe webhooks.
 
 ### Running the Application
 
@@ -179,11 +182,6 @@ SWAGGER_PASSWORD=admin`
 
 1.  Navigate to `http://localhost:3000/docs`.
 2.  Enter the credentials set in the `.env` file to access the documentation.
-
-### Stripe Integration
-
-1.  Ensure your Stripe credentials and price IDs are set in the `.env` file.
-2.  Use the provided endpoints to handle subscriptions, payments, and customer portal sessions.
 
 ## Contributing
 
