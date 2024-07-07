@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../users/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
+import { MailerService } from 'src/mailer/mailer.service';
 
 @Injectable()
 export class StripeService {
@@ -13,6 +14,7 @@ export class StripeService {
         @Inject('STRIPE_CLIENT') private readonly stripeClient: Stripe,
         private readonly jwtService: JwtService,
         @InjectModel(User.name) private userModel: Model<UserDocument>,
+        private readonly mailerService: MailerService,
     ) { }
 
     async listProducts() {
@@ -36,7 +38,7 @@ export class StripeService {
             customer = await this.createStripeCustomer(user);
             // Save the customer ID to your user model (this depends on how you manage your users)
             user.stripeCustomerId = customer.id;
-            
+
             await this.userModel.findOneAndUpdate(
                 { email: user.email },
                 {
@@ -71,6 +73,13 @@ export class StripeService {
         });
     }
 
+    async createCustomerPortalSession(customerId: string, returnUrl: string) {
+        const session = await this.stripeClient.billingPortal.sessions.create({
+            customer: customerId,
+            return_url: returnUrl,
+        });
+        return session;
+    }
 
     async handleWebhook(event: Stripe.Event) {
         this.logger.log(`Received event: ${event.type}`);
@@ -78,29 +87,48 @@ export class StripeService {
         switch (event.type) {
             case 'checkout.session.completed':
                 const session = event.data.object as Stripe.Checkout.Session;
-                // Handle successful checkout session
                 this.logger.log(`Checkout session completed: ${session.id}`);
+
                 await this.upgradeAccount(session);
+
+                const customerEmail = await this.getCustomerEmail(session.customer as string);
+                if (customerEmail) {
+                    await this.mailerService.sendThankYouEmail(customerEmail);
+                }
                 break;
             case 'invoice.payment_succeeded':
                 const invoice = event.data.object as Stripe.Invoice;
-                // Handle successful payment
                 this.logger.log(`Invoice payment succeeded: ${invoice.id}`);
+
+                const invoiceCustomerEmail = await this.getCustomerEmail(invoice.customer as string);
+                if (invoiceCustomerEmail) {
+                    const invoiceUrl = invoice.hosted_invoice_url;
+                    await this.mailerService.sendInvoicePaymentSucceededEmail(invoiceCustomerEmail, invoiceUrl);
+                }
                 break;
             case 'invoice.payment_failed':
-                // Handle failed payment
+                const failedInvoice = event.data.object as Stripe.Invoice;
                 this.logger.log('Invoice payment failed');
+
+                await this.downgradeAccount(failedInvoice.customer as string);
+
+                const failedCustomerEmail = await this.getCustomerEmail(failedInvoice.customer as string);
+                if (failedCustomerEmail) {
+                    await this.mailerService.sendInvoicePaymentFailedEmail(failedCustomerEmail);
+                }
                 break;
             case 'customer.subscription.deleted':
-                // Handle subscription deletion
                 this.logger.log('Customer subscription deleted');
+
+                await this.downgradeAccount(event.data.object.customer as string);
                 break;
             case 'customer.deleted':
-                // Handle customer deletion
                 this.logger.log('Customer deleted');
+
+                await this.deleteCustomer(event.data.object.id);
                 break;
             default:
-                this.logger.log(`Unhandled event type ${event.type}`);
+            // this.logger.log(`Unhandled event type ${event.type}`);
         }
     }
 
@@ -137,4 +165,59 @@ export class StripeService {
             this.logger.log(`User not found for customerId: ${customerId}`);
         }
     }
+
+    async downgradeAccount(customerId: string) {
+        const updatedUser = await this.userModel.findOneAndUpdate(
+            { stripeCustomerId: customerId },
+            {
+                $set: {
+                    subscription: null,
+                    subscriptionExpires: null,
+                },
+            },
+            { new: true }
+        );
+
+        if (updatedUser) {
+            this.logger.log(`User subscription downgraded: ${customerId}`);
+        } else {
+            this.logger.log(`User not found for customerId: ${customerId}`);
+        }
+    }
+
+    async deleteCustomer(customerId: string) {
+        const updatedUser = await this.userModel.findOneAndUpdate(
+            { stripeCustomerId: customerId },
+            {
+                $set: {
+                    stripeCustomerId: null,
+                    subscription: null,
+                    subscriptionExpires: null,
+                },
+            },
+            { new: true }
+        );
+
+        if (updatedUser) {
+            this.logger.log(`User customer deleted: ${customerId}`);
+        } else {
+            this.logger.log(`User not found for customerId: ${customerId}`);
+        }
+    }
+
+    async getCustomerEmail(customerId: string): Promise<string | null> {
+        try {
+            const customer = await this.stripeClient.customers.retrieve(customerId);
+
+            if ((customer as Stripe.DeletedCustomer).deleted) {
+                return null;
+            }
+
+            return (customer as Stripe.Customer).email;
+        } catch (error) {
+            this.logger.error(`Failed to retrieve customer email for ID ${customerId}: ${error.message}`);
+            return null;
+        }
+    }
+
 }
