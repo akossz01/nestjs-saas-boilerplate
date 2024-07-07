@@ -27,10 +27,12 @@
     "@nestjs/mongoose": "^10.0.10",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.3.10",
+    "@nestjs/swagger": "^7.4.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "cookie-parser": "^1.4.6",
     "crypto": "^1.0.1",
+    "express-basic-auth": "^1.2.1",
     "mongoose": "^8.4.5",
     "nodemailer": "^6.9.14",
     "passport": "^0.7.0",
@@ -38,7 +40,8 @@
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
-    "stripe": "^16.2.0"
+    "stripe": "^16.2.0",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

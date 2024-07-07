@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { MailerService } from './mailer/mailer.service';
 import { MailerModule } from './mailer/mailer.module';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { MailerModule } from './mailer/mailer.module';
     UsersModule,
     AuthModule,
     MailerModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailerService],

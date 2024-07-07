@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
 
@@ -29,7 +29,15 @@ export class MailerService {
       html,
     };
 
-    return await this.transporter.sendMail(mailOptions);
+    try {
+      console.log(`Sending email to: ${to}`);
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log(`Email sent: ${result.messageId}`);
+      return result;
+    } catch (error) {
+      console.error('Error sending email:', error.message);
+      throw new InternalServerErrorException('Failed to send email');
+    }
   }
 
   async sendThankYouEmail(to: string) {
